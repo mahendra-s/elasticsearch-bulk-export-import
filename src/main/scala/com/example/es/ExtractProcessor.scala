@@ -1,6 +1,7 @@
 package com.example.es
 
 import com.example.util.Logging
+import org.elasticsearch.client.Client
 
 object ExtractProcessor extends App with Logging {
 
@@ -9,7 +10,7 @@ object ExtractProcessor extends App with Logging {
   else {
     val indexName = args(0)
     val directory = s"data/$indexName"
-    val client = ESManager.getClient
+    def client: Client = ESManager.getClient
 
     val extractWorker = new ExtractWorker(client, ESUtility)
 

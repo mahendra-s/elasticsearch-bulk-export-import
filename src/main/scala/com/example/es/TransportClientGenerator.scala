@@ -3,7 +3,7 @@ package com.example.es
 import java.net.InetAddress
 
 import com.example.util.Logging
-import org.elasticsearch.client.transport.TransportClient
+import org.elasticsearch.client.Client
 import org.elasticsearch.common.settings.Settings
 import org.elasticsearch.common.transport.TransportAddress
 import org.elasticsearch.xpack.client.PreBuiltXPackTransportClient
@@ -16,7 +16,7 @@ trait TransportClientGenerator extends Logging {
   val password: String
   val enableSsl: Boolean
 
-  def getTransportClient: TransportClient = {
+  def getTransportClient: Client = {
     val addresses = nodes.flatMap { host => InetAddress.getAllByName(host) }.map {
       new TransportAddress(_, port)
     }
