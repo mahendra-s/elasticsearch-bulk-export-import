@@ -12,7 +12,7 @@ object ImportProcessor extends App with Logging {
   else {
     val directory = args(0)
     val indexName = args(1)
-    def client: Client = ESManager.getClient
+    val client: Client = ESManager.getClient
 
     val files = new File(directory).listFiles()
     info(s"reading files form ${new File(directory).toString}")

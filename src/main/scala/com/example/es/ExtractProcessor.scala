@@ -10,7 +10,7 @@ object ExtractProcessor extends App with Logging {
   else {
     val indexName = args(0)
     val directory = s"data/$indexName"
-    def client: Client = ESManager.getClient
+    val client: Client = ESManager.getClient
 
     val extractWorker = new ExtractWorker(client, ESUtility)
 
