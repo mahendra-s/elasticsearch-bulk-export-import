@@ -2,10 +2,10 @@ package com.example.es
 
 import com.example.util.Logging
 import org.elasticsearch.action.admin.indices.refresh.RefreshRequest
-import org.elasticsearch.action.bulk.BulkResponse
-import org.elasticsearch.action.index.IndexRequestBuilder
+import org.elasticsearch.action.bulk.{BulkRequest, BulkResponse}
+import org.elasticsearch.action.index.IndexRequest
 import org.elasticsearch.action.search.{ClearScrollResponse, SearchResponse}
-import org.elasticsearch.client.Client
+import org.elasticsearch.client.{Client, RequestOptions, RestHighLevelClient}
 import org.elasticsearch.common.xcontent.XContentType
 import org.elasticsearch.index.query.QueryBuilders._
 
@@ -16,14 +16,14 @@ trait ESUtility extends Logging {
   implicit val retryCount = 3
 
   def refreshIndex(client: Client, indexName: String): Boolean =
-    withRetry{
+    withRetry {
       client.admin().indices().refresh(new RefreshRequest(indexName)).get
       true
     }
 
 
   def createSearchForDataExtraction(client: Client, actualIndex: String, extractSize: Int, scrollKeepAlive: String): SearchResponse =
-    withRetry{
+    withRetry {
       val searchQuery = client.prepareSearch(actualIndex)
         .setSize(extractSize)
         .setQuery(boolQuery.must(matchAllQuery()))
@@ -34,33 +34,34 @@ trait ESUtility extends Logging {
     }
 
   def prepareSearchWithScroll(client: Client, scrollId: String, scrollKeepAlive: String): SearchResponse =
-    withRetry{
+    withRetry {
       val searchResponse = client.prepareSearchScroll(scrollId).setScroll(scrollKeepAlive).get
       info(s"ResponseTime::: prepareSearchWithScroll---- [${searchResponse.getTook}ms]")
       searchResponse
     }
 
   def clearSearchScroll(client: Client, response: SearchResponse): ClearScrollResponse =
-    withRetry{
+    withRetry {
       client.prepareClearScroll().addScrollId(response.getScrollId).get
     }
 
   def checkClusterHealth(client: Client): Byte =
-    withRetry{
+    withRetry {
       client.admin.cluster().prepareClusterStats().get.getStatus.value
     }
 
-  def getIndexRequest(client: Client, ingestIndex: String, docType: String, docId: String, json: String): IndexRequestBuilder =
-    client.prepareIndex(ingestIndex, docType, docId)
-      .setSource(json, XContentType.JSON)
+  def getIndexRequest(client: RestHighLevelClient, ingestIndex: String, docType: String, docId: String, json: String): IndexRequest = {
+    new IndexRequest(ingestIndex, docType, docId)
+      .source(json, XContentType.JSON)
+  }
 
-  def getBulkResponse(client: Client, list: Iterable[IndexRequestBuilder]): BulkResponse =
-    withRetry{
-      val bulkRequest = client.prepareBulk()
+  def getBulkResponse(client: RestHighLevelClient, list: Iterable[IndexRequest]): BulkResponse =
+    withRetry {
+      val bulkRequest = new BulkRequest
       list.foreach {
         listItem => bulkRequest.add(listItem)
       }
-      val searchResponse = bulkRequest.get
+      val searchResponse: BulkResponse = client.bulk(bulkRequest, RequestOptions.DEFAULT)
       info(s"ResponseTime::: getBulkResponse---- [${searchResponse.getTook}]")
       searchResponse
     }

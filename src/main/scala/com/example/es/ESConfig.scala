@@ -7,6 +7,7 @@ trait ESConfig {
   val nodes: Array[String] = config.getString("elasticsearch.nodes").split(",")
   val clusterName: String = config.getString("elasticsearch.cluster")
   val port: Int = config.getInt("elasticsearch.port")
+  val restport: Int = config.getInt("elasticsearch.restport")
   val user: String = config.getString("elasticsearch.esuser")
   val password: String = config.getString("elasticsearch.password")
   val enableSsl: Boolean = config.getBoolean("elasticsearch.enablessl")

@@ -11,6 +11,7 @@ libraryDependencies ++= Seq(
  "org.apache.logging.log4j" % "log4j-to-slf4j" % "2.11.1",
   "org.slf4j" % "slf4j-api" % "1.7.24",
   "org.json4s" %% "json4s-native" % "3.6.0",
+ "org.elasticsearch.client" % "elasticsearch-rest-high-level-client" % "6.4.1",
  "org.elasticsearch.client" % "x-pack-transport" % "6.4.1",
   "com.typesafe" % "config" % "1.3.2",
   "com.amazonaws" % "aws-java-sdk" % "1.11.385",

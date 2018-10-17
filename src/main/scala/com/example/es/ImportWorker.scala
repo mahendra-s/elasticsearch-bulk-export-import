@@ -4,20 +4,20 @@ import java.io.File
 
 import com.example.json.JsonHelper._
 import com.example.util.Logging
-import org.elasticsearch.action.index.IndexRequestBuilder
-import org.elasticsearch.client.Client
+import org.elasticsearch.action.index.IndexRequest
+import org.elasticsearch.client.RestHighLevelClient
 
 import scala.collection.mutable.ListBuffer
 import scala.io.Source
 import scala.util.control.NonFatal
 
-class ImportWorker(client: Client, esUtility: ESUtility) extends Logging {
+class ImportWorker(client: RestHighLevelClient, esUtility: ESUtility) extends Logging {
 
   val batchSize = 1600
 
   def startImport(importFile: File, queryIndex: String): Int = {
     info(s"Starting import for ${importFile.getName} . ...")
-    val listBuffer = scala.collection.mutable.ListBuffer[IndexRequestBuilder]()
+    val listBuffer = scala.collection.mutable.ListBuffer[IndexRequest]()
     val insertResponse: Int =
       try {
         val count = Source.fromFile(importFile).getLines().foldLeft(0) { case (successCount, oneLine) =>
@@ -41,7 +41,7 @@ class ImportWorker(client: Client, esUtility: ESUtility) extends Logging {
     insertResponse
   }
 
-  private def insert(list: ListBuffer[IndexRequestBuilder]): Int = {
+  private def insert(list: ListBuffer[IndexRequest]): Int = {
     info(s"Inserting ${list.size} documents into ElasticSearch")
     if (list.nonEmpty) {
       val bulkResponse = esUtility.getBulkResponse(client, list)
@@ -51,11 +51,11 @@ class ImportWorker(client: Client, esUtility: ESUtility) extends Logging {
     }
   }
 
-  private def parseJson(oneLine: String, index: String): Option[IndexRequestBuilder] =
+  private def parseJson(oneLine: String, index: String): Option[IndexRequest] =
     try {
       val parsedLine = parse(oneLine)
       val docId = (parsedLine \ "id").extract[String]
-      Some(esUtility.getIndexRequest(client, index, "doc", docId, oneLine))
+      Some(esUtility.getIndexRequest(client, index, "my_data", docId, oneLine))
     } catch {
       case ex: Exception =>
         warn(s"Error in parsing json [$oneLine]", ex)
